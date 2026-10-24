@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skodo Help Solution</title>
+<style>
+  :root {
+      color-scheme: dark;
+    --bg: #0bf81b;
+    --panel: #3a8a2c;
+    --panel2: #ebf5f4;
+    --line: #080808;
+    --text: #f1f3f6;
+    --muted: #9eacc5;
+    --accent: #60a5fa;
+    --accent2: #60a5fa;
+    --good: #86efac;
+    --bad: #fca5a5
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text);
+    background: radial-gradient(ellipse at 50% -15%, #17345a 0, transparent 48%), var(--bg);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  header {
+    padding: 38px 20px 32px; text-align: center;
+    background: linear-gradient(135deg, rgba(18, 36, 62, .96), rgba(13, 24, 42, .92));
+    border-bottom: 1px solid var(--line);
+  }
+  .brand-mark { display: inline-grid; place-items: center; width: 42px; height: 42px; margin-bottom: 12px; border-radius: 13px; color: #071523; background: var(--accent); font-weight: 900; font-size: 1.2rem; box-shadow: 0 0 28px #38bdf82b; }
+  header h1 { margin: 0; color: var(--text); letter-spacing: -.04em; font-size: clamp(1.8rem, 4vw, 2.7rem); }
+  header p { max-width: 740px; margin: 10px auto 0; color: var(--muted); line-height: 1.6; }
+  main { max-width: 1240px; margin: 0 auto; padding: 26px 20px 10px; }
+  .panel { margin-bottom: 20px; padding: clamp(17px, 2.5vw, 25px); background: linear-gradient(145deg, rgba(20, 33, 53, .98), rgba(14, 25, 42, .98)); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 36px #00000016; }
+  h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 1.15rem; letter-spacing: -.015em; }
+  .step { display: inline-grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; border-radius: 9px; color: #06202b; background: var(--accent); font-size: .82rem; font-weight: 850; }
+  .hint { margin: 0 0 16px; color: var(--muted); font-size: .92rem; line-height: 1.65; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin: 17px 0 0; }
+  button { min-height: 42px; border: 1px solid transparent; border-radius: 10px; padding: 10px 16px; background: var(--accent); color: #06202b; font: inherit; font-weight: 750; cursor: pointer; transition: transform .15s ease, filter .15s ease, border-color .15s ease; }
+  button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+  button:focus-visible { outline: 3px solid #67e8f988; outline-offset: 3px; }
+  button.secondary { color: var(--text); background: #1a2940; border-color: #354964; }
+  button:disabled { opacity: .42; cursor: not-allowed; }
+  .input-wrap { overflow-x: auto; padding: 3px 2px 8px; }
+  .sudoku { display: grid; grid-template-columns: repeat(9, minmax(34px, 49px)); grid-template-rows: repeat(9, minmax(34px, 49px)); width: max-content; overflow: hidden; border: 2px solid #6b849f; border-radius: 7px; background: #0b1525; box-shadow: 0 8px 25px #00000024; }
+  .sudoku input { width: 100%; height: 100%; min-width: 0; border: 0; border-right: 1px solid #2e4059; border-bottom: 1px solid #2e4059; border-radius: 0; padding: 0; text-align: center; font: 600 1.08rem/1 inherit; color: var(--text); background: #101e32; outline-offset: -3px; }
+  .sudoku input:focus { position: relative; z-index: 1; outline: 3px solid var(--accent-strong); background: #1b3551; }
+  .sudoku input:nth-child(3n) { border-right: 2px solid #6b849f; }
+  .sudoku input:nth-child(n+19):nth-child(-n+27), .sudoku input:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #6b849f; }
+  .sudoku input.given { color: var(--accent); font-weight: 850; background: #18334a; }
+  .sudoku input.invalid { background: #512832; color: #ffe4e6; outline: 2px solid #fb7185; }
+  .status { margin-top: 15px; padding: 12px 14px; border: 1px solid #30445f; border-radius: 11px; background: #0d192a; color: var(--muted); line-height: 1.5; }
+  .status.good { color: var(--good); border-color: #286449; background: #0d251f; }
+  .status.bad { color: var(--bad); border-color: #703341; background: #2a1721; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stat { min-width: 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-raised); }
+  .stat span { display: block; color: var(--muted); font-size: .82rem; }
+  .stat strong { display: block; margin-top: 6px; color: var(--accent); font-size: clamp(1.35rem, 3vw, 1.7rem); letter-spacing: -.03em; }
+  .table-wrap { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: 12px; background: #0b1525; }
+  table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  #solutionTable { border-collapse: separate; border-spacing: 0; min-width: max-content; width: 100%; font-size: 13px; }
+  #solutionTable th, #solutionTable td { border-right: 1px solid #2a3a54; border-bottom: 1px solid #2a3a54; text-align: center; padding: 7px 9px; min-width: 42px; height: 35px; white-space: nowrap; }
+  #solutionTable thead th { position: sticky; top: 0; z-index: 2; background: #1b3451; color: #a5f3fc; font-weight: 800; border-top: 1px solid #2a3a54; }
+  #solutionTable th:first-child, #solutionTable td:first-child { border-left: 1px solid #2a3a54; }
+  #solutionTable tbody th { position: sticky; left: 0; z-index: 1; background: #1b3451; color: #a5f3fc; font-weight: 800; }
+  #solutionTable tbody tr:nth-child(even) td { background: #101d30; }
+  #solutionTable tbody tr:nth-child(odd) td { background: #0c1728; }
+  #solutionTable tbody tr:hover td { background: #1b3451; }
+  #solutionTable td.given-value { color: var(--accent); font-weight: 900; background: #18334a; }
+  #solutionTable td { font-variant-numeric: tabular-nums; }
+  .empty { padding: 24px; color: var(--muted); line-height: 1.6; }
+  .footer { text-align: center; color: #74849d; padding: 18px 15px 28px; font-size: .84rem; }
+  @media (max-width: 600px) {
+    header { padding: 30px 16px 25px; }
+    main { padding: 16px 12px 4px; }
+    .panel { padding: 16px 13px; border-radius: 14px; }
+    .stats { gap: 8px; }
+    .stat { padding: 12px 10px; }
+    .stat span { font-size: .75rem; }
+    .sudoku { grid-template-columns: repeat(9, minmax(31px, 1fr)); grid-template-rows: repeat(9, 35px); }
+    .sudoku input { font-size: 1rem; }
+    .toolbar button { flex: 1 1 auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand-mark" aria-hidden="true">S</div>
+  <h1>Skodo Help Solution</h1>
+  <p>Sudoku Solution Explorer · Enter a puzzle, find valid solutions, and compare them in an 81-column grid.</p>
+</header>
+<main>
+  <section class="panel">
+    <h2><span class="step">1</span> Enter the Sudoku puzzle (9 × 9)</h2>
+    <p class="hint">Enter digits 1–9 in known cells. Leave unknown cells blank. The solver respects each given digit and standard Sudoku rules.</p>
+    <div class="input-wrap"><div id="inputGrid" class="sudoku" aria-label="Sudoku input grid"></div></div>
+    <div class="toolbar">
+      <button id="solveBtn">Find solutions</button>
+      <button id="exampleBtn" class="secondary">Load example</button>
+      <button id="clearBtn" class="secondary">Clear grid</button>
+    </div>
+    <div id="status" class="status" role="status">Ready. Enter a puzzle or load the example.</div>
+  </section>
+
+  <section class="panel">
+    <h2><span class="step">2</span> Solution summary</h2>
+    <div class="stats">
+      <div class="stat"><span>Solutions found</span><strong id="solutionCount">0</strong></div>
+      <div class="stat"><span>Displayed</span><strong id="displayedCount">0</strong></div>
+      <div class="stat"><span>Search limit</span><strong id="searchLimit">81</strong></div>
+    </div>
+    <p class="hint">The app finds up to 81 solutions per search. Some puzzles have one solution, some have multiple, and an empty grid has an enormous number—this tool does not attempt to enumerate every Sudoku solution.</p>
+  </section>
+
+  <section class="panel">
+    <h2><span class="step">3</span> 81-column solution table</h2>
+    <p class="hint">Each displayed row is one complete solution. Columns 1–81 correspond to cells A1–I9 in row-major order. Rows are shown only when an actual solution has been found; unused rows are not filled with misleading NULL values.</p>
+    <div class="table-wrap" id="tableWrap">
+      <div class="empty">Solutions will appear here after you run the solver.</div>
+    </div>
+    <div class="toolbar">
+      <button id="downloadBtn" class="secondary" disabled>Download CSV</button>
+    </div>
+  </section>
+</main>
+<div class="footer">Skodo Help Solution · Runs locally in your browser </div>
+
+<script>
+(() => {
+  const SIZE = 9;
+  const MAX_SOLUTIONS = 81;
+  const inputGrid = document.getElementById('inputGrid');
+  const statusEl = document.getElementById('status');
+  const solutionCountEl = document.getElementById('solutionCount');
+  const displayedCountEl = document.getElementById('displayedCount');
+  const tableWrap = document.getElementById('tableWrap');
+  const downloadBtn = document.getElementById('downloadBtn');
+  let latestSolutions = [];
+  let latestGivens = Array(81).fill(0);
+
+  const inputs = [];
+  for (let i = 0; i < 81; i++) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.maxLength = 1;
+    input.setAttribute('aria-label', `Cell ${cellName(i)}`);
+    input.title = `Cell ${cellName(i)}`;
+    input.dataset.index = i;
+    input.addEventListener('input', () => {
+      const digit = input.value.replace(/[^1-9]/g, '').slice(-1);
+      input.value = digit;
+      input.classList.toggle('given', Boolean(digit));
+      input.classList.remove('invalid');
+      setStatus('Puzzle edited. Run “Find solutions” to calculate again.');
+    });
+    input.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight') { event.preventDefault(); inputs[Math.min(80, i + 1)].focus(); }
+      if (event.key === 'ArrowLeft') { event.preventDefault(); inputs[Math.max(0, i - 1)].focus(); }
+      if (event.key === 'ArrowDown') { event.preventDefault(); inputs[Math.min(80, i + 9)].focus(); }
+      if (event.key === 'ArrowUp') { event.preventDefault(); inputs[Math.max(0, i - 9)].focus(); }
+    });
+    input.addEventListener('paste', event => {
+      const text = (event.clipboardData || window.clipboardData).getData('text');
+      const digits = text.replace(/[^0-9]/g, '').split('').filter(x => x >= '1' && x <= '9');
+      if (digits.length > 1) {
+        event.preventDefault();
+        for (let j = 0; j < Math.min(81, digits.length); j++) {
+          inputs[j].value = digits[j];
+          inputs[j].classList.add('given');
+        }
+      }
+    });
+    inputs.push(input);
+    inputGrid.appendChild(input);
+  }
+
+  function cellName(index) {
+    return String.fromCharCode(65 + Math.floor(index / 9)) + ((index % 9) + 1);
+  }
+
+  function setStatus(message, type = '') {
+    statusEl.textContent = message;
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+  }
+
+  function readPuzzle() {
+    return inputs.map(input => input.value ? Number(input.value) : 0);
+  }
+
+  function findConflicts(board) {
+    const conflicts = new Set();
+    const groups = [];
+    for (let r = 0; r < 9; r++) groups.push(Array.from({length: 9}, (_, c) => r * 9 + c));
+    for (let c = 0; c < 9; c++) groups.push(Array.from({length: 9}, (_, r) => r * 9 + c));
+    for (let br = 0; br < 3; br++) for (let bc = 0; bc < 3; bc++) {
+      const group = [];
+      for (let r = br * 3; r < br * 3 + 3; r++)
+        for (let c = bc * 3; c < bc * 3 + 3; c++) group.push(r * 9 + c);
+      groups.push(group);
+    }
+    for (const group of groups) {
+      const seen = new Map();
+      for (const idx of group) {
+        const value = board[idx];
+        if (!value) continue;
+        if (seen.has(value)) {
+          conflicts.add(idx);
+          conflicts.add(seen.get(value));
+        } else seen.set(value, idx);
+      }
+    }
+    return conflicts;
+  }
+
+  function getCandidates(board, idx) {
+    const used = new Set();
+    const row = Math.floor(idx / 9), col = idx % 9;
+    for (let i = 0; i < 9; i++) {
+      used.add(board[row * 9 + i]);
+      used.add(board[i * 9 + col]);
+    }
+    const r0 = Math.floor(row / 3) * 3, c0 = Math.floor(col / 3) * 3;
+    for (let r = r0; r < r0 + 3; r++)
+      for (let c = c0; c < c0 + 3; c++) used.add(board[r * 9 + c]);
+    const candidates = [];
+    for (let n = 1; n <= 9; n++) if (!used.has(n)) candidates.push(n);
+    return candidates;
+  }
+
+  function solve(board, limit) {
+    const solutions = [];
+    let nodes = 0;
+    function search() {
+      if (solutions.length >= limit) return;
+      nodes++;
+      let bestIdx = -1, bestCandidates = null;
+      for (let idx = 0; idx < 81; idx++) {
+        if (board[idx] !== 0) continue;
+        const candidates = getCandidates(board, idx);
+        if (candidates.length === 0) return;
+        if (bestCandidates === null || candidates.length < bestCandidates.length) {
+          bestIdx = idx;
+          bestCandidates = candidates;
+          if (candidates.length === 1) break;
+        }
+      }
+      if (bestIdx === -1) {
+        solutions.push(board.slice());
+        return;
+      }
+      for (const n of bestCandidates) {
+        board[bestIdx] = n;
+        search();
+        board[bestIdx] = 0;
+        if (solutions.length >= limit) return;
+      }
+    }
+    search();
+    return { solutions, nodes };
+  }
+
+  function renderSolutions(solutions, givens) {
+    tableWrap.replaceChildren();
+    const table = document.createElement('table');
+    table.id = 'solutionTable';
+    table.setAttribute('aria-label', 'Sudoku solutions in tabular form');
+    const caption = document.createElement('caption');
+    caption.textContent = 'Solutions — each row is one complete Sudoku solution; columns A1 to I9 show the 81 cell values.';
+    caption.style.cssText = 'caption-side: top; text-align: left; padding: 12px; color: #cbd5e1; background: #13243a; border: 1px solid #2a3a54; border-bottom: 0; font-weight: 600;';
+    table.appendChild(caption);
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const corner = document.createElement('th');
+    corner.textContent = 'Solution';
+    headerRow.appendChild(corner);
+    for (let col = 0; col < 81; col++) {
+      const th = document.createElement('th');
+      th.textContent = cellName(col);
+      th.title = `Original Sudoku cell ${cellName(col)}`;
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    if (solutions.length === 0) {
+      tableWrap.innerHTML = '<div class="empty">No valid solutions were found. Check the given values and try again.</div>';
+      return;
+    }
+    for (let row = 0; row < solutions.length; row++) {
+      const tr = document.createElement('tr');
+      const rowHead = document.createElement('th');
+      rowHead.textContent = `#${row + 1}`;
+      tr.appendChild(rowHead);
+      const solution = solutions[row];
+      for (let col = 0; col < 81; col++) {
+        const td = document.createElement('td');
+        td.textContent = solution[col];
+        if (givens[col]) td.className = 'given-value';
+        td.title = `${cellName(col)} = ${solution[col]}${givens[col] ? ' (given)' : ''}`;
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+  }
+
+  function runSolver() {
+    const puzzle = readPuzzle();
+    inputs.forEach(input => input.classList.remove('invalid'));
+    const conflicts = findConflicts(puzzle);
+    if (conflicts.size) {
+      conflicts.forEach(idx => inputs[idx].classList.add('invalid'));
+      latestSolutions = [];
+      downloadBtn.disabled = true;
+      solutionCountEl.textContent = '0';
+      displayedCountEl.textContent = '0';
+      tableWrap.innerHTML = '<div class="empty">Fix the highlighted duplicate values before solving.</div>';
+      setStatus('The puzzle has conflicting givens: a number repeats in a row, column, or 3×3 box.', 'bad');
+      return;
+    }
+
+    const button = document.getElementById('solveBtn');
+    button.disabled = true;
+    setStatus('Searching for valid solutions…');
+    
+    setTimeout(() => {
+      const result = solve(puzzle.slice(), MAX_SOLUTIONS);
+      latestSolutions = result.solutions;
+      latestGivens = puzzle.slice();
+      solutionCountEl.textContent = result.solutions.length === MAX_SOLUTIONS
+        ? `${MAX_SOLUTIONS}+` : String(result.solutions.length);
+      displayedCountEl.textContent = result.solutions.length;
+      renderSolutions(result.solutions, puzzle);
+      downloadBtn.disabled = result.solutions.length === 0;
+      button.disabled = false;
+
+      if (result.solutions.length === 0) {
+        setStatus('No valid solution exists for these given values.', 'bad');
+      } else if (result.solutions.length === 1) {
+        setStatus('Found one solution. This puzzle may have a unique solution, but the search limit is 81.', 'good');
+      } else if (result.solutions.length === MAX_SOLUTIONS) {
+        setStatus('Found at least 81 valid solutions. The search stopped at the display limit; more may exist.', 'good');
+      } else {
+        setStatus(`Found ${result.solutions.length} valid solution(s). The search completed before reaching the 81-solution limit.`, 'good');
+      }
+    }, 20);
+  }
+
+  function loadExample() {
+    const example = [
+      '530070000',
+      '600195000',
+      '098000060',
+      '800060003',
+      '400803001',
+      '700020006',
+      '060000280',
+      '000419005',
+      '000080079'
+    ];
+    const digits = example.join('').split('');
+    inputs.forEach((input, i) => {
+      input.value = digits[i] === '0' ? '' : digits[i];
+      input.classList.toggle('given', Boolean(input.value));
+      input.classList.remove('invalid');
+    });
+    setStatus('Example loaded. Click “Find solutions”.');
+  }
+
+  function clearGrid() {
+    inputs.forEach(input => {
+      input.value = '';
+      input.classList.remove('given', 'invalid');
+    });
+    latestSolutions = [];
+    solutionCountEl.textContent = '0';
+    displayedCountEl.textContent = '0';
+    tableWrap.innerHTML = '<div class="empty">Solutions will appear here after you run the solver.</div>';
+    downloadBtn.disabled = true;
+    setStatus('Grid cleared.');
+  }
+
+  function downloadCSV() {
+    if (!latestSolutions.length) return;
+    const headers = ['Solution', ...Array.from({length: 81}, (_, i) => cellName(i))];
+    const rows = [headers];
+    for (let i = 0; i < latestSolutions.length; i++) {
+      rows.push([`#${i + 1}`, ...latestSolutions[i]]);
+    }
+    const csv = rows.map(row => row.map(value => {
+      const s = String(value);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'skodo-sudoku-solutions.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('solveBtn').addEventListener('click', runSolver);
+  document.getElementById('exampleBtn').addEventListener('click', loadExample);
+  document.getElementById('clearBtn').addEventListener('click', clearGrid);
+  downloadBtn.addEventListener('click', downloadCSV);
+})();
+</script>
+</body>
+</html>
